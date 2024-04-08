@@ -1,15 +1,58 @@
 // Sample data
-const hosts = [
-    { name: "iris", tags: ["iris"] },
-    { name: "dbproxy", tags: ["dbproxy"] },
-    { name: "postgres", tags: ["postgres"] }
-];
 
 const connections = [
-    ["iris", "dbproxy"],
-    ["iris", "postgres"],
-    ["dbproxy", "iris"]
-];
+    {
+        "sourceRanges": null,
+        "sourceTags": [
+            "dbproxy-us15",
+        ],
+        "targetTags": [
+            "postgres-us15-master"
+        ],
+        "allowed": [
+            {
+                "IPProtocol": "tcp"
+            }
+        ]
+    },
+    {
+        "sourceRanges": null,
+        "sourceTags": [
+            "iris-us15",
+        ],
+        "targetTags": [
+            "dbproxy-us15"
+        ],
+        "allowed": [
+            {
+                "IPProtocol": "tcp"
+            }
+        ]
+    },
+]
+
+var hosts = []
+let hostsPromise = fetch('http://localhost:8080/hosts.json')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Process the data here before returning it
+        return data;
+    })
+    .catch(error => {
+        console.error('Error fetching data from hosts.json:', error);
+    });
+
+// Outside of the fetch call, you can wait for the promise to resolve
+hostsPromise.then(hosts => {
+    // Access and use the hosts data here
+    console.log('Array of hosts:', hosts);
+});
+
 
 // Initialize nodes and edges arrays for vis.js
 let nodes = [];
@@ -33,18 +76,34 @@ hosts.forEach(vertex => {
     });
 });
 
-// Create edges for each connection
-connections.forEach(pair => {
-    // Find corresponding nodes
-    const fromNode = nodes.find(node => node.label.includes(pair[0]));
-    const toNode = nodes.find(node => node.label.includes(pair[1]));
-
-    // Add edge to vis.js edges array
-    edges.push({
-        from: fromNode.id,
-        to: toNode.id
-    });
-});
+// // Create connections between each pair of source and target tags
+// connections.forEach(connection => {
+//     if (Array.isArray(connection.sourceTags)) {
+//         connection.sourceTags.forEach(sourceTag => {
+//             connection.targetTags.forEach(targetTag => {
+//                 // Find corresponding nodes by their IDs (names)
+//                 const fromNode = nodes.find(node => node.label.includes(sourceTag));
+//                 const toNode = nodes.find(node => node.label.includes(targetTag));
+//
+//                 // Add connection to vis.js edges array with arrows
+//                 if (fromNode && toNode) {
+//                     edges.push({
+//                         from: fromNode.id,
+//                         to: toNode.id,
+//                         arrows: {
+//                             to: {
+//                                 enabled: true,
+//                                 scaleFactor: 0.5
+//                             }
+//                         }
+//                     });
+//                 } else {
+//                     console.error(`One or both nodes not found for connection: ${sourceTag} -> ${targetTag}`);
+//                 }
+//             });
+//         });
+//     }
+// });
 
 // Create a network
 const container = document.getElementById("network");
